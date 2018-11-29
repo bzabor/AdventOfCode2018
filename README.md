@@ -2,7 +2,7 @@
 
 Template project for Kotlin tests and solutions for the [2018 puzzles](http://adventofcode.com/2018).
 
-To get started, simply fork this project! Then:
+To get started, clone this project! Then:
 
 - Copy your daily inputs into the `dayXX/src/main/resources/input.txt` files.
 - Write your daily solutions in the `main` functions in the files named `dayXX/src/main/kotlin/Main.kt`.
