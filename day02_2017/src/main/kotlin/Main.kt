@@ -8,10 +8,9 @@ class Main {
 
             val input = File(ClassLoader.getSystemResource("input.txt").file).readLines()
 
-            val calculator = OverlapFinder(input = input)
+            val calculator = ChecksumCalculator(input = input)
 
-            println("Part 1 solution: ${calculator.findOverlapCount()}")
-            println("Part 2 solution: ${calculator.getPureClaimId()}")
+            println("Part 1 solution: ${calculator.getChecksum()}")
         }
     }
 }

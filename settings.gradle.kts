@@ -1,8 +1,12 @@
 rootProject.name = "AdventOfCode2018"
 include("day01")
+include("day01_2017")
 include("day02")
+include("day02_2017")
 include("day03")
+include("day03_2017")
 include("day04")
+include("day04_2017")
 include("day05")
 include("day06")
 include("day07")
