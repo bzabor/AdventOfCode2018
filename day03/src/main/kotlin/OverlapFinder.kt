@@ -7,8 +7,6 @@ class OverlapFinder(private val input: List<String>) {
 
     fun findOverlapCount(): Int {
         for (line in input) {
-            val regex = Regex("""\D+""")
-            ...
             val (claimNumber, left, top, width, height) = regex.split(line.drop(1)).map { it.toInt() }
             applyClaim(left, top, width, height)
         }
