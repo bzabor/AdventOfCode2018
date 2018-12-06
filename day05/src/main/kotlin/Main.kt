@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.*
 
 class Main {
 
@@ -10,8 +11,12 @@ class Main {
 
             val day05 = Day05(input = input)
 
+            val start = Date().time
+
             println("Part 1 solution: ${day05.part1()}")
             println("Part 2 solution: ${day05.part2()}")
+
+            println("total millis: ${Date().time - start}")
         }
     }
 }

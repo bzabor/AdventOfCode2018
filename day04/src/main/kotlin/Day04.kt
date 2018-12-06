@@ -5,12 +5,12 @@ class Day04(private val input: List<String>) {
     val sorted = input.toTypedArray().sorted()
 
     fun part1(): Int {
-
         processInput()
 
         val maxGuard = guardMostAsleep()
         var maxIdx = 0
         var minuteMax = 0
+
         for ((idx, minute) in maxGuard!!.asleep.withIndex()) {
             println("$idx -  $minute")
             if (minute > minuteMax) {
@@ -22,7 +22,6 @@ class Day04(private val input: List<String>) {
     }
 
     fun part2(): Int {
-
         processInput()
 
         var maxGuard: Guard? = null
@@ -43,21 +42,16 @@ class Day04(private val input: List<String>) {
     }
 
     private fun processInput() {
-
         val guardRegex = Regex("""#\d+""")
         val minuteRegex = Regex(""":\d\d""")
 
         var guard: Guard? = null
         var sleeps = 0
-        var wakes = 0
 
         for (line in sorted) {
-            println(line)
-
             var match = guardRegex.find(line)
             if(match != null) {
-                var guardId = match.value.drop(1)
-                println("Guardid: $guardId")
+                val guardId = match.value.drop(1)
                 guard = guardMap.getOrPut(guardId) {Guard(guardId)}
 
             } else {
@@ -66,8 +60,7 @@ class Day04(private val input: List<String>) {
                     if (line.contains("asleep")) {
                         sleeps = match.value.drop(1).toInt()
                     } else {
-                        wakes = match.value.drop(1).toInt()
-
+                        val wakes = match.value.drop(1).toInt()
                         for (idx in sleeps until wakes) {
                             guard!!.asleep[idx]++
                         }
