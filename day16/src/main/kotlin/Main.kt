@@ -7,8 +7,9 @@ class Main {
         fun main(args: Array<String>) {
 
             val input = File(ClassLoader.getSystemResource("input.txt").file).readLines()
+            val input2 = File(ClassLoader.getSystemResource("input2.txt").file).readLines()
 
-            val day = Day16(input = input)
+            val day = Day16(input = input, input2 = input2)
 
             println("Part 1 solution: ${day.part1()}")
             println("Part 2 solution: ${day.part2()}")
