@@ -1,3 +1,5 @@
+import kotlin.math.min
+
 class Day22(private val input: List<String>) {
 
     // sample
@@ -10,8 +12,9 @@ class Day22(private val input: List<String>) {
 //    val targetCol = 9
 //    val targetRow = 751
 
+    var minPathSum = 1_000_000
 
-    val gridExtend = 5
+    val gridExtend = 20
 
     // guess 7436 too high
 
@@ -39,7 +42,11 @@ class Day22(private val input: List<String>) {
 
         process(grid[0][0])
 
-        println("FINAL RISK: ${riskLevel()}")
+//        println("FINAL RISK: ${riskLevel()}")
+
+        println("")
+        println("FINAL MIN path sum now -------------------------------------------------------------------- $minPathSum")
+        println("")
 
         return 0
     }
@@ -79,12 +86,21 @@ class Day22(private val input: List<String>) {
                 }
     }
 
+
     private fun process(cell: Cell) {
 
-        println("ENTER process for cell: $cell")
+        println("")
+        println("ENTER process for cell: $cell having pathSum: ${cell.pathSum} currentTool: ${cell.currentTool} and path: ${cell.visited}")
 
         if (cell.row == targetRow && cell.col == targetCol) {
+//            cell.visited.add(cell)
             println("cell is TARGET CELL. RETURNING with pathsum: ${cell.pathSum} and path: ${cell.visited}")
+            minPathSum = min(minPathSum, cell.pathSum)
+            println("min path sum now ----------------------------------------------------------- $minPathSum")
+            println("min path sum now ----------------------------------------------------------- $minPathSum")
+            println("min path sum now ----------------------------------------------------------- $minPathSum")
+            println("min path sum now ----------------------------------------------------------- $minPathSum")
+            println("")
             return
         }
 
@@ -94,31 +110,50 @@ class Day22(private val input: List<String>) {
         // reset path with shorter path cost if shorter
 
         var thisCellsTool = cell.currentTool
+        var thisCellsVisited = cell.visited.toMutableList()
+
 
         for (nextCell in neighbors) {
 
-//            println("trying to step to cell $cell...")
+            println("trying to step from cell: $cell to cell $nextCell...")
 
-            cell.currentTool = thisCellsTool
+
+            if (cell.visited.contains(nextCell)) {
+                println("Stringently filtering out neighbors already in path... RETURNING")
+                return
+            }
+
+            var nextCellsTool = thisCellsTool
 
             var costOfMove = 0
 
-            if (nextCell.cellType.tools.contains(thisCellsTool)) {
+            // Finally, once you reach the target, you need the torch equipped
+            // before you can find him in the dark. The target is always in a rocky region,
+            // so if you arrive there with climbing gear equipped, you will need to spend
+            // seven minutes switching to your torch.
+
+            if (nextCell.row == targetRow && nextCell.col == targetCol) {
+                println("found neighbor that is the TARGET. current tool is $thisCellsTool")
+
+                if (thisCellsTool != Tool.TORCH) {
+                    println("need to switch to TORCH")
+                    costOfMove = 8
+                    nextCellsTool = Tool.TORCH
+                } else {
+                    costOfMove = 1
+                }
+
+            } else if (nextCell.cellType.tools.contains(thisCellsTool)) {
 
                 costOfMove = 1
 
-                // Finally, once you reach the target, you need the torch equipped
-                // before you can find him in the dark. The target is always in a rocky region,
-                // so if you arrive there with climbing gear equipped, you will need to spend
-                // seven minutes switching to your torch.
-
                 if (nextCell.row == targetRow && nextCell.col == targetCol) {
-                    println("found neighbor that is the TARGET. current tool is ${cell.currentTool}")
+                    println("found neighbor that is the TARGET. current tool is $thisCellsTool")
 
-                    if (cell.currentTool != Tool.TORCH) {
-                        println("need to switch to TORCH")
+                    if (thisCellsTool != Tool.TORCH) {
+                        println("IS THIS NEEEDED need to switch to TORCH")
                         costOfMove = 8
-                        cell.currentTool = Tool.TORCH
+                        nextCellsTool = Tool.TORCH
                     }
                 }
 
@@ -126,19 +161,26 @@ class Day22(private val input: List<String>) {
 
                 // use other tool
                 costOfMove = 8
-                cell.currentTool = cell.cellType.tools.filterNot { it == cell.currentTool }[0]
+                nextCellsTool = cell.cellType.tools.filterNot { it == cell.currentTool }[0]
+                println("changed cell current tool to: ${nextCellsTool }")
 
             }
 
             if (cell.pathSum + costOfMove < nextCell.pathSum || nextCell.pathSum == 0) {
+
+                println("cell pathSum ${cell.pathSum} + costOfMove:${costOfMove} is < nextCell.pathsum: ${nextCell.pathSum}  or nextCell pathsum is 0, so updating nextCell")
+
                 nextCell.pathSum = cell.pathSum + costOfMove
-                nextCell.currentTool = cell.currentTool
-                nextCell.visited = cell.visited
+                nextCell.currentTool = nextCellsTool
+                nextCell.visited = thisCellsVisited
                 nextCell.visited.add(cell)
 
+                println("nextCell: $nextCell now has currentTool:${nextCell.currentTool} and pathSum:${nextCell.pathSum} and path:${nextCell.visited} ")
+
                 process(nextCell)
+
             } else {
-                // path would be greater than the already-existing path to nextCell, so just ignore
+//                 path would be greater than the already-existing path to nextCell, so just ignore
                 println("PATH WOULD BE GREATER............IGNORING!")
             }
 
@@ -147,7 +189,7 @@ class Day22(private val input: List<String>) {
     }
 
     private fun neighborCells(cell: Cell): List<Cell> {
-//        println("enter neighborCells for cell: $cell")
+        println("enter neighborCells for cell: $cell")
         val neighbors = mutableListOf<Cell>()
 
         if (cell.col < grid[0].lastIndex) {
@@ -169,11 +211,11 @@ class Day22(private val input: List<String>) {
         // filter out unreachable neighbors
         val eligible =  neighbors.filter { it.cellType.tools.any { it in cell.cellType.tools }}
         val ineligible =  neighbors.filterNot { it.cellType.tools.any { it in cell.cellType.tools }}
-//        println("for cell: $cell eligible neighbors are: $eligible  ineligible are: $ineligible")
+        println("for cell: $cell eligible neighbors are: $eligible  ineligible are: $ineligible")
 
         // filter out neighbors already in path
         val finalEligible = eligible.filterNot { cell.visited.contains(it) }
-//        println("for cell: $cell final eligible neighbors are: $finalEligible")
+        println("for cell: $cell final eligible neighbors are: $finalEligible")
 
         return finalEligible
     }
