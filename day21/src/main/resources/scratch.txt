@@ -1,0 +1,80 @@
+part 1
+
+the only time reg 0 is accessed is instruction 28:
+
+ip28:  eqrr 3 0 5      R5 = if (R0 == R3) 1 else 0
+
+the first time ip 28 is run is at count 1846, when R3=3909249
+so assume reg0 should be 3909249
+
+count: 1846 ip:=28  start  [0, 1, 1, 3909249, 28, 1]  ----  [eqrr, 3, 0, 5]   --->    [0, 1, 1, 3909249, 28, 0]}
+count: 109194 ip:=28  start  [0, 1, 59, 16433800, 28, 1]  ----  [eqrr, 3, 0, 5]   --->    [0, 1, 59, 16433800, 28, 0]}
+count: 562146 ip:=28  start  [0, 1, 251, 8267081, 28, 1]  ----  [eqrr, 3, 0, 5]   --->    [0, 1, 251, 8267081, 28, 0]}
+
+3909249
+
+
+For part 2
+
+it will exit when R0 == R3
+what is highest value of R3?
+
+
+
+count: 9690778 ip:=28  start  [1397714, 1, 175, 13344507, 28, 1]  ----  [eqrr, 3, 0, 5]   --->    [1397714, 1, 175, 13344507, 28, 0]}
+STOPPED with ip= 22
+
+GUESSED 1913641670, which seems like the highest number that R3 ever has, it was too high
+GUESSED   16777215, highest seti for R3 in instructions. too high
+GUESSED    3909249                                       too low
+GUESSED   16776349   not correct, not too low or too high
+
+
+maxR3 when r0 = 0:
+at count: 0   MAX R3:  123
+at count: 6   MAX R3:  1397714
+at count: 10   MAX R3:    1913641670
+at count: 1854   MAX R3:  1922142641
+at count: 109202   MAX R3:  1922603934
+at count: 560368   MAX R3:  1959115808
+at count: 3964626   MAX R3:  1974602305
+at count: 4791116   MAX R3:  2140137838
+at count: 17601684   MAX R3:  2144355374
+at count: 196305206   MAX R3:  2145145785
+at count: 588937222   MAX R3:  2145476063
+at count: 651411196   MAX R3:  2145610529
+at count: 656715636   MAX R3:  2147320829
+at count: 851080977   MAX R3:  2147452627
+
+maxR3 when r0 = 1:
+at count: 0   MAX R3:  123
+at count: 6   MAX R3:  1397714
+at count: 10   MAX R3:  1913641670
+at count: 1854   MAX R3:  1922142641
+at count: 109202   MAX R3:  1922603934
+at count: 560368   MAX R3:  1959115808
+at count: 3964626   MAX R3:  1974602305
+at count: 4791116   MAX R3:  2140137838
+at count: 17601684   MAX R3:  2144355374
+
+max R3 when r0 = 3909249:
+at count: 0   MAX R3:  123
+at count: 6   MAX R3:  1397714
+at count: 10   MAX R3:  1913641670
+STOPPED with ip= 31 final count: 1848
+
+
+count: 2601290093 ip:=28  start  [0, 1, 189, 9177116, 28, 1]  ----  [eqrr, 3, 0, 5]   --->    [0, 1, 189, 9177116, 28, 0]}  r3ValsSize: 11274
+at count: 2601290093  r3 is repeating:  9177116
+STOPPED with ip= 28 final count: 2601290093
+
+at count: 2601290093  r3 is repeating:  9177116
+STOPPED with ip= 28 final count: 2601290093
+Maximum r3 value before repeats: 16776349  prevR3: 12333799
+Part 1 solution: 0
+Part 2 solution: 0
+
+after looking at reddit, i think this is the soln: 12333799
+
+
+

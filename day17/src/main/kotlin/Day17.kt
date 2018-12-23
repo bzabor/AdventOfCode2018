@@ -1,3 +1,4 @@
+import java.io.File
 import kotlin.math.max
 import kotlin.math.min
 
@@ -40,21 +41,16 @@ class Day17(private val input: List<String>) {
 
     fun part1(): Int {
         init()
-        printGridHelp(centerRow = 290, centerCol = 506)
         val stream = Stream(streamCount, spring.row, spring.col)
         streamCount++
         flow(stream)
-        return grid.flatMap { it.filter { it.cellType in listOf(CellType.WATER_FLOWING, CellType.WATER_RESTING) } }.count()
+        printToFile()
+        return grid.flatMap { it.filter { it.row >= 8 && it.cellType in listOf(CellType.WATER_FLOWING, CellType.WATER_RESTING) } }.count()
     }
 
 
     private tailrec fun flow(stream: Stream) {
         println("ENTER flow for stream cell: $stream   ITERATION: ${++iteration}  streamCount: $streamCount")
-
-//        if (iteration > 510) {
-//            println("Max iterations hit. returning.....")
-//            return
-//        }
 
         val row = stream.row
         val col = stream.col
@@ -78,9 +74,7 @@ class Day17(private val input: List<String>) {
             stream.history.add(Pair(stream.row, stream.col))
             grid[stream.row][stream.col].cellType = CellType.WATER_FLOWING
 
-
         } else {
-            println("cant flow down..")
 
             val (boundedLeft, leftIdx) = bounded(-1, row, col)
             val (boundedRight, rightIdx) = bounded(1, row, col)
@@ -107,8 +101,7 @@ class Day17(private val input: List<String>) {
                 flow(newStream)
             }
         }
-
-        printGridHelp(centerRow = row)
+        printGridForStream(stream)
         flow(stream)
     }
 
@@ -131,44 +124,33 @@ class Day17(private val input: List<String>) {
     }
 
 
-    private fun printGrid(cols: Int = 120, rows: Int = 50) {
+
+    fun printGridForStream(stream: Stream) {
         println("")
-        for (row in maxRow-50 .. maxRow) {
-            for (col in 400 .. 500) {
+        println("GRID FOR STREAM: $stream")
+
+        for (row in max(0, stream.row - 15) .. stream.row + 25) {
+            print("${row} - ")
+            for (col in stream.col-20 .. stream.col+20) {
                 print("${grid[row][col].cellType.symbol} ")
             }
             println("")
         }
-
-//        for (row in 0 .. 14) {
-//            for (col in 490..510) {
-//                print("${grid[row][col].cellType.symbol} ")
-//            }
-//            println("")
-//        }
-
-        println("maxRow: $maxRow")
         println("-".repeat(50))
         println("")
         println("")
     }
 
-
-    private fun printGridHelp(cols: Int = 90, rows: Int = 40, centerRow: Int = 300, centerCol: Int = 500) {
-        return
-//        println("")
-//        for (row in max(0,centerRow-rows/2) .. centerRow+rows/2) {
-//            print("$row - ")
-//            for (col in centerCol-cols/2 .. centerCol+cols/2) {
-//                print("${grid[row][col].cellType.symbol} ")
-//            }
-//            println("")
-//        }
-//
-//        println("maxRow: $maxRow")
-//        println("-".repeat(50))
-//        println("")
-//        println("")
+    fun printToFile() {
+        File("output.txt").printWriter().use { out ->
+            for (row in 0..grid.lastIndex) {
+                out.print("${row} - ")
+                for (col in 410..580) {
+                    out.print("${grid[row][col].cellType.symbol} ")
+                }
+                out.println("")
+            }
+        }
     }
 }
 
@@ -190,6 +172,6 @@ class Cell(
 }
 
 class Stream(val id: Int, var row: Int = 0, var col: Int = 0) {
-    var history = mutableSetOf<Pair<Int, Int>>(Pair(row, col))
+    var history = mutableSetOf(Pair(row, col))
     override fun toString() = "(${id})$row:$col"
 }

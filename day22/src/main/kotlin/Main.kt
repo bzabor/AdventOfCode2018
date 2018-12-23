@@ -8,7 +8,7 @@ class Main {
 
             val input = File(ClassLoader.getSystemResource("input.txt").file).readLines()
 
-            val day = Day2(input = input)
+            val day = Day22(input = input)
 
             println("Part 1 solution: ${day.part1()}")
             println("Part 2 solution: ${day.part2()}")
