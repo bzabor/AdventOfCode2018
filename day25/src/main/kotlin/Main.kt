@@ -6,6 +6,7 @@ class Main {
         @JvmStatic
         fun main(args: Array<String>) {
 
+            println("ENTER DAY 25")
             val input = File(ClassLoader.getSystemResource("input.txt").file).readLines()
 
             val day = Day25(input = input)
