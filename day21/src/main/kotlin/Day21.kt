@@ -29,6 +29,7 @@ class Day21(private val input: List<String>) {
 
         val r3Vals = mutableListOf<Int>()
 
+
         while (instructions.keys.contains(ip)) {
 
 

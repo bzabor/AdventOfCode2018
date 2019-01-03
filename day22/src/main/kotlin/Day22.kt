@@ -1,5 +1,7 @@
-import kotlin.math.abs
-import kotlin.math.min
+import kotlin.math.pow
+import kotlin.math.sqrt
+
+typealias CellTool = Pair<Cell, Tool>
 
 class Day22(private val input: List<String>) {
 
@@ -8,29 +10,129 @@ class Day22(private val input: List<String>) {
 //    val targetRow = 10
 //    val targetCol = 10
 
-//    https://www.geeksforgeeks.org/a-search-algorithm/
 
     //actual
     val depth = 11817
     val targetCol = 9
     val targetRow = 751
 
-    var minPathSum = 1_000_000
-    //    val pathSumLimit = 1070
-    val pathSumLimit = 1600
+    val gridExtendRight = 30
+    val gridExtendDown = 30
 
-    val gridExtendRight = 40
-    val gridExtendDown = 40
+
+    val MAX_SCORE = Integer.MAX_VALUE
+
+    var grid = Array(targetRow + 1 + gridExtendDown) { Array(targetCol + 1 + gridExtendRight) { Cell() } }
+
+    //    https://rosettacode.org/wiki/A*_search_algorithm
+    //    https://www.geeksforgeeks.org/a-search-algorithm/
 
     // guess 7436 too high, 7433 too high, (2146 too high,2143 too high with gridextend 10) with grideExtend20: 2146
     // 0,0 got it down to less than 1070, cant recall exact - 1064? 1039 was not correct
-    // 50, 50
-    // for 30, 30 guesstng 1027 - not correct
+    // for 30, 30 try 1027 - not correct..  1025 is!
+
+    //    val start = Triple(0,0, Tool.TORCH)
+    val start = Pair(Cell(0, 0), Tool.TORCH)
+    val finish = Pair(Cell(targetRow, targetCol), Tool.TORCH)
 
 
+    val openVertices = mutableSetOf(start)
+    val closedVertices = mutableSetOf<CellTool>()
+    val costFromStart = mutableMapOf(start to 0)
+    val estimatedTotalCost = mutableMapOf(start to distanceToTarget(start.first))
+
+    val cameFrom = mutableMapOf<CellTool, CellTool>()  // Used to generate path by back tracking
+
+    // neighbors are the four compass points, plus a tool switch at current position
+    fun getNeighbors(cellTool: CellTool): List<CellTool> {
+        val neighbors = mutableListOf<CellTool>()
+        if (cellTool.first.row + 1 in 0..grid.lastIndex) {
+            neighbors.add(CellTool(grid[cellTool.first.row + 1][cellTool.first.col], cellTool.second))
+        }
+
+        if (cellTool.first.col + 1 in 0..grid[0].lastIndex) {
+            neighbors.add(CellTool(grid[cellTool.first.row][cellTool.first.col + 1], cellTool.second))
+        }
+
+        if (cellTool.first.col - 1 in 0..grid[0].lastIndex) {
+            neighbors.add(CellTool(grid[cellTool.first.row][cellTool.first.col - 1], cellTool.second))
+        }
+
+        if (cellTool.first.row - 1 in 0..grid.lastIndex) {
+            neighbors.add(CellTool(grid[cellTool.first.row - 1][cellTool.first.col], cellTool.second))
+        }
+
+        // filter out neighbors that don't actually have torch as a tool
+        val eligible = neighbors.filter { it.first.cellType.tools.contains(cellTool.second) }.toMutableList()
+
+        val otherTool = cellTool.first.cellType.tools.filterNot { it == cellTool.second }[0]
+        eligible.add(Pair(cellTool.first, otherTool))
+        println("for cell: ${cellTool.first} eligible neighbors are: $eligible")
+
+        val finalEligible = eligible.filterNot { closedVertices.contains(it) }  //
+        println("for cell: ${cellTool.first} filtered final eligible neighbors are: $finalEligible")
+        return finalEligible
+    }
 
 
-    var grid = Array(targetRow + 1 + gridExtendDown) { Array(targetCol + 1 + gridExtendRight) { Cell() } }
+    fun starSearch() {
+
+        /**
+         * Use the cameFrom values to Backtrack to the start position to generate the path
+         */
+        fun generatePath(currentPos: CellTool, cameFrom: Map<CellTool, CellTool>): List<CellTool> {
+            val path = mutableListOf(currentPos)
+            var current = currentPos
+            while (cameFrom.containsKey(current)) {
+                current = cameFrom.getValue(current)
+                path.add(0, current)
+            }
+            return path.toList()
+        }
+
+        while (openVertices.size > 0) {
+
+            val currentPos = openVertices.minBy { estimatedTotalCost.getValue(it) }!!
+
+            // Check if we have reached the finish
+            if (currentPos == finish) {
+                val path = generatePath(currentPos, cameFrom)
+                println("currentPos == finish with TOTAL COST ${estimatedTotalCost.getValue(finish)}")
+                println("Final path is: $path")
+                println("==".repeat(50))
+                return
+            }
+
+            // Mark the current vertex as closed
+            openVertices.remove(currentPos)
+            closedVertices.add(currentPos)
+
+
+            val neighbors = getNeighbors(currentPos)
+            neighbors
+                    .filterNot { closedVertices.contains(it) }  // Exclude previous visited vertices
+                    .forEach { neighbor ->
+
+                        val moveCost = moveCost(currentPos, neighbor)
+                        val score = costFromStart.getValue(currentPos) + moveCost
+                        if (score < costFromStart.getOrDefault(neighbor, MAX_SCORE)) {
+                            if (!openVertices.contains(neighbor)) {
+                                openVertices.add(neighbor)
+                            }
+                            cameFrom.put(neighbor, currentPos) // sets parent
+                            costFromStart.put(neighbor, score)
+                            estimatedTotalCost.put(neighbor, score + distanceToTarget(neighbor.first))
+                        }
+                    }
+        }
+        throw IllegalArgumentException("No Path from Start $start to Finish $finish")
+    }
+
+    fun moveCost(currentPos: CellTool, neighbor: CellTool): Int {
+        val cost = if (currentPos.second == neighbor.second) 1 else 7
+        println("cost to move from ${currentPos.first},${currentPos.second} to ${neighbor.first},${neighbor.second} ------> $cost")
+        return cost
+    }
 
     fun init() {
         for (row in 0..targetRow + gridExtendDown) {
@@ -47,18 +149,9 @@ class Day22(private val input: List<String>) {
 
 
     fun part1(): Int {
-
         init()
-//        printGrid()
-
-        process(grid[0][0], Tool.TORCH, mutableSetOf(Triple(0, 0, Tool.TORCH)), 0)
-
-//        println("FINAL RISK: ${riskLevel()}")
-
-        println("")
-        println("FINAL MIN path sum now -------------------------------------------------------------------- $minPathSum")
-        println("")
-
+        printGrid()
+        starSearch()
         return 0
     }
 
@@ -99,164 +192,8 @@ class Day22(private val input: List<String>) {
 
     var count = 0
 
-    fun distanceToTarget(cell: Cell): Int {
-        return abs(targetRow - cell.row) + abs(targetCol - cell.col)
-    }
-
-
-    private tailrec fun process(cell: Cell, currentTool: Tool, visited: MutableSet<Triple<Int, Int, Tool>>, switchCount: Int) {
-
-//        println("ENTER process for cell: $cell having currentTool: ${currentTool} pathSum: ${cell.pathSum}  switchCount:$switchCount")
-
-
-        if (cell.pathSum > pathSumLimit) {
-//            println("PATHSUM OF ${cell.pathSum} exceeds $pathSumLimit. RETURNING..")
-            return
-        }
-
-        var nextSwitchCount = switchCount
-
-        val nextVisited = visited.toMutableSet()
-        nextVisited.add(Triple(cell.row, cell.col, currentTool))
-
-        if (cell.row == targetRow && cell.col == targetCol) {
-            println("cell is TARGET CELL.")
-
-            if (currentTool == Tool.TORCH) {
-                minPathSum = min(minPathSum, cell.pathSum)
-                println("AND CURRENT TOOL IS TORCH.RETURNING with currentTool: ${currentTool} pathSum: ${cell.pathSum}")// and path: ${visited} ")
-                println("min path sum now ----------------------------------------------------------- $minPathSum")
-                println("min path sum now ----------------------------------------------------------- $minPathSum")
-                println("min path sum now ----------------------------------------------------------- $minPathSum")
-                println("min path sum now ----------------------------------------------------------- $minPathSum")
-                println("")
-                return
-            } else {
-                nextSwitchCount++
-                cell.pathSum += 7
-                process(cell, Tool.TORCH, nextVisited, nextSwitchCount)
-                return
-            }
-        }
-
-        var mustSwitch = false
-        val neighbors = neighborCells(cell, nextVisited, currentTool)
-
-        val mutableNeighbors = neighbors.toMutableList()
-
-
-
-        while (mutableNeighbors.isNotEmpty()) {
-
-            var nextCell: Cell = mutableNeighbors[0]
-
-            var minf = Integer.MAX_VALUE
-
-            for (neighbor in mutableNeighbors) {
-                if (distanceToTarget(neighbor) + cell.distanceToNeighbor(neighbor, currentTool) < minf) {
-                    minf = distanceToTarget(neighbor)
-                    nextCell = neighbor
-                }
-            }
-
-            mutableNeighbors.remove(nextCell)
-
-            if (nextCell.cellType.tools.contains(currentTool)) {
-//                println("no switch was needed for neighbor $nextCell")
-//                println("cell: $cell has pathsum: ${cell.pathSum} and costOfMove: 1 . compare to nextcell: $nextCell pathsum of ${nextCell.pathSum}")
-
-                if (cell.pathSum + 1 < nextCell.pathSum || nextCell.pathSum == 0) {
-                    nextCell.pathSum = cell.pathSum + 1
-//                    println("Going to move to nextCell: $nextCell using currentTool: $currentTool  pathSUm: ${nextCell.pathSum} ") //and path:${nextCell.visited} ")
-
-
-                    process(nextCell, currentTool, nextVisited, nextSwitchCount)
-
-
-                }
-
-            } else {
-                mustSwitch = true
-            }
-
-        }
-
-//            print("trying to step from cell: $cell to cell $nextCell...")
-
-
-        if (mustSwitch) {
-            // switch to other tool IF NOT VISITED ALREADY
-            val nextTool = cell.cellType.tools.filterNot { it == currentTool }[0]
-            if (!nextVisited.contains((Triple(cell.row, cell.col, nextTool)))) {
-                nextSwitchCount++
-//                println("SWITCHED nextTool to: ${nextTool} for current cell: $cell")
-                cell.pathSum += 7
-                process(cell, nextTool, nextVisited, nextSwitchCount)
-            } else {
-//                println("Cant switch tool to already visited")
-            }
-        }
-//        println("EXIT process for cell: $cell having currentTool: ${currentTool} pathSum: ${cell.pathSum}  switchCount:$switchCount")
-    }
-
-    private fun neighborCells(cell: Cell, visited: MutableSet<Triple<Int, Int, Tool>>, currentTool: Tool): List<Cell> {
-//        println("enter neighborCells for cell: $cell")
-
-        val incRow = if (targetRow - cell.row >= 0) 1 else -1
-        val incCol = if (targetCol - cell.col >= 0) 1 else -1
-
-        val neighbors = mutableListOf<Cell>()
-
-
-        if (cell.row + incRow in 0..grid.lastIndex) {
-            neighbors.add(grid[cell.row + incRow][cell.col])
-        }
-
-        if (cell.col + incCol in 0..grid[0].lastIndex) {
-            neighbors.add(grid[cell.row][cell.col + incCol])
-        }
-
-        if (cell.col - incCol in 0..grid[0].lastIndex) {
-            neighbors.add(grid[cell.row][cell.col - incCol])
-        }
-
-        if (cell.row - incRow in 0..grid.lastIndex) {
-            neighbors.add(grid[cell.row - incRow][cell.col])
-        }
-
-//        if (cell.row < targetRow) {
-//            if (cell.row < grid.lastIndex) {
-//                neighbors.add(grid[cell.row + 1][cell.col])
-//            }
-//        } else {
-//            if (cell.row > 0) {
-//                neighbors.add(grid[cell.row - 1][cell.col])
-//            }
-//        }
-//
-//        if (cell.col > targetCol) {
-//            if (cell.col > 0) {
-//                neighbors.add(grid[cell.row][cell.col - 1])
-//            }
-//        } else {
-//            if (cell.col < grid[0].lastIndex) {
-//                neighbors.add(grid[cell.row][cell.col + 1])
-//            }
-//        }
-
-        // filter out unreachable neighbors
-        val eligible = neighbors.filter { it.cellType.tools.any { it in cell.cellType.tools } }
-        val ineligible = neighbors.filterNot { it.cellType.tools.any { it in cell.cellType.tools } }
-//        println("for cell: $cell eligible neighbors are: $eligible  ineligible are: $ineligible")
-
-        // filter out neighbors already in path
-        val finalEligible = eligible.filterNot { visited.contains(Triple(it.row, it.col, currentTool)) }
-//        println("for cell: $cell final eligible neighbors are: $finalEligible")
-        return finalEligible
-    }
-
-    fun part2(): Int {
-        return 0
+    fun distanceToTarget(cell: Cell): Double {
+        return sqrt((targetRow - cell.row).toDouble().pow(2) + (targetCol - cell.col).toDouble().pow(2))
     }
 
     private fun printGrid() {

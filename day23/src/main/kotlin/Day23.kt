@@ -17,8 +17,6 @@ class Day23(private val input: List<String>) {
 //    [, 4, 0, 0, 3]
 //    [, 0, 2, 0, 1]
 
-    // guess 967 is too high
-
     val posList = mutableListOf<Node>()
 
     private fun init() {
@@ -27,7 +25,7 @@ class Day23(private val input: List<String>) {
             val a = line.split("""[^-0-9]+""".toRegex()).drop(1).map{it.toLong()}
             posList.add(Node(a[0], a[1], a[2], a[3]))
 
-//            println(a)
+            println(a)
         }
     }
 
@@ -52,8 +50,36 @@ class Day23(private val input: List<String>) {
 
 
 
+
     fun part2(): Int {
 
+        posList.sortBy { it.x }
+        val minX = posList.first().x
+        val maxX = posList.last().x
+
+        posList.sortBy { it.y }
+        val minY = posList.first().y
+        val maxY = posList.last().y
+
+        posList.sortBy { it.z }
+        val minZ = posList.first().z
+        val maxZ = posList.last().z
+
+        println("minx: $minX maxX: $maxX    minY: $minY  maxY: $maxY    minZ: $minZ  maxZ: $maxZ")
+
+        for (x in minX..maxX) {
+            for (y in minY..maxY) {
+                for (z in minZ..maxZ) {
+
+
+                    for (pos in posList) {
+
+                    }
+
+
+                }
+            }
+        }
 
 
         return 0
